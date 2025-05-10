@@ -1,0 +1,273 @@
+from bisect import bisect_left
+
+
+standard_input, packages, output_together = 1, 1, 1
+dfs_tag, int_hashing, read_from_file = 0, 0, 0
+multi_test = 0
+output_mode = 1  # 0: in solve; 1: one res; 2: YES/NO; 3: Yes/No
+
+
+def solve_loglog():
+    N = II()
+    S = I()
+    T = I()
+
+    book = defaultdict(list)
+
+    for i, x in enumerate(S):
+        book[x].append(i)
+
+    if any(x not in book for x in T):
+        return 0
+
+    class B:
+        def __getitem__(self, x: int) -> bool:
+            i = j = 0
+            for ch in T:
+                ln = len(book[ch])
+                used, rm = divmod(x, ln)
+                i += used
+
+                if rm == 0:
+                    rm = ln
+                    i -= 1
+
+                p = bisect_left(book[ch], j)
+                if p + rm <= ln:
+                    j = book[ch][p + rm - 1] + 1
+                    if j == N:
+                        i += 1
+                        j = 0
+                else:
+                    i += 1
+                    j = book[ch][rm - (ln - p) - 1] + 1
+
+                if i > N or i == N and j:
+                    return True
+            return False
+
+    bic = B()
+    res = bisect_left(bic, True, 1, int(1e18))
+    return res - 1
+
+
+def encode_str(s=None):  # 'a': 97, 'A': 65
+    if s:
+        return list(map(lambda x: ord(x) - 97, s))
+    else:
+        return list(map(lambda x: ord(x) - 97, input()))
+
+
+def solve():
+    N = II()
+    S = encode_str()
+    T = encode_str()
+
+    ss = set(S)
+    if set(T) - ss:
+        return 0
+
+    m = len(S)
+
+    A = [[0] * (m + 1) for _ in range(26)]
+    B = [[] for _ in range(26)]
+
+    for ch in range(26):
+        P = A[ch]
+        for i, x in enumerate(S, 1):
+            P[i] = P[i - 1]
+            if x == ch:
+                P[i] += 1
+                B[ch].append(i)
+
+    class Bis:
+        def __getitem__(self, mid: int) -> bool:
+            i = j = 0
+            for x in T:
+                c = A[x][m]
+                t = A[x][j] + mid
+                i += (t - 1) // c
+                if i >= N:
+                    return True
+                t = (t - 1) % c + 1
+                j = B[x][t - 1]
+            return False
+
+    bic = Bis()
+    res = bisect_left(bic, True, 1, int(1e17) + 1)
+    return res - 1
+
+
+def main():
+    # region local test
+    if read_from_file and "AW" in os.environ.get("COMPUTERNAME", ""):
+        test_no = read_from_file
+        f = open(os.path.dirname(__file__) + f"\\in{test_no}.txt", "r")
+        global input
+        input = lambda: f.readline().rstrip("\r\n")
+    # endregion
+
+    T = II() if multi_test else 1
+    for t in range(T):
+        if output_mode == 0:
+            solve()
+        elif output_mode == 1:
+            print(solve())
+        elif output_mode == 2:
+            print("YES" if solve() else "NO")
+        elif output_mode == 3:
+            print("Yes" if solve() else "No")
+
+
+# region
+if standard_input:
+    import os, sys, math
+
+    input = lambda: sys.stdin.readline().strip()
+
+    inf = math.inf
+
+    def I():
+        return input()
+
+    def II():
+        return int(input())
+
+    def MII():
+        return map(int, input().split())
+
+    def LI():
+        return list(input().split())
+
+    def LII():
+        return list(map(int, input().split()))
+
+    def LFI():
+        return list(map(float, input().split()))
+
+    def GMI():
+        return map(lambda x: int(x) - 1, input().split())
+
+    def LGMI():
+        return list(map(lambda x: int(x) - 1, input().split()))
+
+    def GRAPH(n: int, m=-1):
+        if m == -1:
+            m = n - 1
+        g = [[] for _ in range(n)]
+        for _ in range(m):
+            u, v = GMI()
+            g[u].append(v)
+            g[v].append(u)
+        return g
+
+
+if packages:
+    from io import BytesIO, IOBase
+    import math
+    import random
+    import bisect
+    import typing
+    from collections import Counter, defaultdict, deque
+    from copy import deepcopy
+    from functools import cmp_to_key, lru_cache, reduce
+    from heapq import *
+    from itertools import accumulate, combinations, permutations, count, product
+    from operator import add, iand, ior, itemgetter, mul, xor
+    from string import ascii_lowercase, ascii_uppercase, ascii_letters
+    from typing import *
+
+    BUFSIZE = 4096
+
+if output_together:
+
+    class FastIO(IOBase):
+        newlines = 0
+
+        def __init__(self, file):
+            self._fd = file.fileno()
+            self.buffer = BytesIO()
+            self.writable = "x" in file.mode or "r" not in file.mode
+            self.write = self.buffer.write if self.writable else None
+
+        def read(self):
+            while True:
+                b = os.read(self._fd, max(os.fstat(self._fd).st_size, BUFSIZE))
+                if not b:
+                    break
+                ptr = self.buffer.tell()
+                self.buffer.seek(0, 2), self.buffer.write(b), self.buffer.seek(ptr)
+            self.newlines = 0
+            return self.buffer.read()
+
+        def readline(self):
+            while self.newlines == 0:
+                b = os.read(self._fd, max(os.fstat(self._fd).st_size, BUFSIZE))
+                self.newlines = b.count(b"\n") + (not b)
+                ptr = self.buffer.tell()
+                self.buffer.seek(0, 2), self.buffer.write(b), self.buffer.seek(ptr)
+            self.newlines -= 1
+            return self.buffer.readline()
+
+        def flush(self):
+            if self.writable:
+                os.write(self._fd, self.buffer.getvalue())
+                self.buffer.truncate(0), self.buffer.seek(0)
+
+    class IOWrapper(IOBase):
+        def __init__(self, file):
+            self.buffer = FastIO(file)
+            self.flush = self.buffer.flush
+            self.writable = self.buffer.writable
+            self.write = lambda s: self.buffer.write(s.encode("ascii"))
+            self.read = lambda: self.buffer.read().decode("ascii")
+            self.readline = lambda: self.buffer.readline().decode("ascii")
+
+    sys.stdout = IOWrapper(sys.stdout)
+
+if dfs_tag:
+    from types import GeneratorType
+
+    def bootstrap(f, stack=[]):
+        def wrappedfunc(*args, **kwargs):
+            if stack:
+                return f(*args, **kwargs)
+            else:
+                to = f(*args, **kwargs)
+                while True:
+                    if type(to) is GeneratorType:
+                        stack.append(to)
+                        to = next(to)
+                    else:
+                        stack.pop()
+                        if not stack:
+                            break
+                        to = stack[-1].send(to)
+                return to
+
+        return wrappedfunc
+
+
+if int_hashing:
+    RANDOM = random.getrandbits(20)
+
+    class Wrapper(int):
+        def __init__(self, x):
+            int.__init__(x)
+
+        def __hash__(self):
+            return super(Wrapper, self).__hash__() ^ RANDOM
+
+
+if True:
+
+    def debug(*args, **kwargs):
+        print("\033[92m", end="")
+        print(*args, **kwargs)
+        print("\033[0m", end="")
+
+
+# endregion
+
+if __name__ == "__main__":
+    main()
