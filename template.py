@@ -17,7 +17,7 @@ def main():
     # region local test
     if read_from_file and "yu" in os.environ.get("USER", "").lower():
         test_no = read_from_file
-        f = open(os.path.dirname(__file__) + f"\\in{test_no}.txt", "r")
+        f = open(os.path.dirname(__file__) + f"/in{test_no}.txt", "r")
         global input
         input = lambda: f.readline().rstrip("\r\n")
     # endregion
